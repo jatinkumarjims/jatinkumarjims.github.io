@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>EBLING™ | Biometric Billing Intelligence</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.4/moment.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f5f7fc;
+            transition: background 0.3s, color 0.2s;
+        }
+
+        /* DARK MODE */
+        body.dark {
+            background: #0a0f1a;
+            color: #eef2ff;
+        }
+
+        /* LOGIN CONTAINER - BIOMETRIC STYLE */
+        .login-biometric {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(145deg, #e0e8f5, #cbd5e6);
+            position: relative;
+        }
+        body.dark .login-biometric {
+            background: linear-gradient(145deg, #0a0f1a, #111827);
+        }
+        .biometric-card {
+            background: rgba(255,255,255,0.96);
+            backdrop-filter: blur(20px);
+            border-radius: 56px;
+            padding: 2.5rem 2rem;
+            width: 440px;
+            max-width: 88%;
+            text-align: center;
+            box-shadow: 0 35px 60px rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.4);
+        }
+        body.dark .biometric-card {
+            background: rgba(18, 25, 45, 0.96);
+            border-color: rgba(255,255,255,0.1);
+        }
+        .finger-icon {
+            font-size: 5rem;
+            color: #2563eb;
+            margin-bottom: 0.5rem;
+        }
+        .biometric-btn {
+            background: #2563eb;
+            border: none;
+            width: 100%;
+            padding: 16px;
+            border-radius: 80px;
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: white;
+            margin: 20px 0;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+        }
+        .fallback-link {
+            margin-top: 20px;
+            font-size: 0.8rem;
+            color: #3b82f6;
+            cursor: pointer;
+        }
+        .input-hidden {
+            display: none;
+        }
+        /* MAIN APP DASHBOARD */
+        .app-dashboard {
+            display: none;
+        }
+        .glass-nav {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 2rem;
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            position: sticky;
+            top: 0;
+            z-index: 20;
+            flex-wrap: wrap;
+        }
+        body.dark .glass-nav {
+            background: rgba(15, 23, 42, 0.9);
+            border-bottom-color: #1e293b;
+        }
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 1.5rem;
+            padding: 1.8rem 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+        .guide-premium {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 2rem;
+            padding: 1.5rem;
+            border: 1px solid rgba(0,0,0,0.05);
+            height: fit-content;
+        }
+        body.dark .guide-premium {
+            background: rgba(15, 23, 42, 0.7);
+            border-color: #1f2a44;
+        }
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+            border: 1px solid #e2e8f0;
+        }
+        body.dark .stat-card {
+            background: #111827;
+            border-color: #1f2a44;
+        }
+        .card-modern {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            border: 1px solid #eef2ff;
+        }
+        body.dark .card-modern {
+            background: #111827;
+            border-color: #1f2a44;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 12px 8px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        body.dark th, body.dark td {
+            border-bottom-color: #1f2a44;
+        }
+        .btn-icon {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            margin: 0 4px;
+            padding: 6px;
+            border-radius: 30px;
+        }
+        .badge-status {
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+        }
+        @media (max-width: 800px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        footer {
+            text-align: center;
+            padding: 1rem;
+            font-size: 0.7rem;
+            border-top: 1px solid #e2e8f0;
+        }
+        .fingerprint-sensor-area {
+            background: #f0f4fe;
+            border-radius: 90px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            100% { transform: scale(1.1); opacity: 0.6; }
+        }
+        .pulse-animation {
+            animation: pulse 1s infinite;
+        }
+    </style>
+</head>
+<body>
+    <!-- LOGIN: FINGERPRINT BIOMETRIC SECTION -->
+    <div id="loginContainer" class="login-biometric">
+        <div class="biometric-card">
+            <div class="finger-icon">
+                <i class="fas fa-fingerprint" id="fingerprintIcon"></i>
+            </div>
+            <h2 style="margin: 8px 0;">EBLING Access</h2>
+            <p style="opacity: 0.7; margin-bottom: 1rem;">Secured by Biometric Identity</p>
+            <button id="fingerprintLoginBtn" class="biometric-btn">
+                <i class="fas fa-hand-peace"></i> Authenticate with Fingerprint
+            </button>
+            <div id="biometricStatus" style="font-size: 0.8rem; margin: 10px 0; color: #2563eb;"></div>
+            <div class="fallback-link" id="showFallbackBtn">
+                <i class="fas fa-keyboard"></i> Use Password Fallback
+            </div>
+            <div id="fallbackForm" style="display: none; margin-top: 20px;">
+                <input type="text" id="fallbackUser" placeholder="Username / Email" class="input-modern-fb" style="width:100%; padding:12px; border-radius:40px; border:1px solid #ccc; margin-bottom:12px;">
+                <input type="password" id="fallbackPass" placeholder="Password" style="width:100%; padding:12px; border-radius:40px; border:1px solid #ccc;">
+                <button id="fallbackLoginBtn" style="margin-top:12px; background:#2563eb; border:none; padding:12px; border-radius:40px; color:white; width:100%;">Sign In</button>
+            </div>
+            <div style="margin-top: 20px; font-size: 11px; color: gray;">✓ Android / iOS : WebAuthn + Biometric API supported devices</div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD (AFTER LOGIN) -->
+    <div id="appMain" class="app-dashboard">
+        <div class="glass-nav">
+            <div style="display:flex; align-items:center; gap:12px;">
+                <i class="fas fa-bolt" style="color:#2563eb; font-size:1.8rem;"></i>
+                <div><strong style="font-size:1.2rem;">EBLING Core</strong><br><span style="font-size:10px;">Biometric Billing · 2026</span></div>
+            </div>
+            <div style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+                <span><i class="fas fa-fingerprint"></i> <span id="loggedUserSpan">Secure User</span></span>
+                <button id="darkModeToggle" style="background:none; border:none; font-size:1.2rem; cursor:pointer;"><i class="fas fa-moon"></i></button>
+                <select id="globalCurrency" style="background:#f1f5f9; border-radius:30px; padding:6px 12px; border:none;">
+                    <option value="USD">USD $</option><option value="EUR">EUR €</option><option value="INR" selected>INR ₹</option><option value="GBP">GBP £</option>
+                </select>
+                <button id="logoutBtn" style="background:#ef4444; border:none; padding:8px 18px; border-radius:30px; color:white; cursor:pointer;"><i class="fas fa-sign-out-alt"></i> Exit</button>
+            </div>
+        </div>
+        <div class="dashboard-grid">
+            <!-- Guide Sidebar -->
+            <div class="guide-premium">
+                <h3><i class="fas fa-compass"></i> System Intelligence</h3>
+                <div style="margin-bottom: 1rem;">
+                    <h4>🔐 Biometric First</h4>
+                    <p>Access using fingerprint / face recognition on compatible mobiles (WebAuthn). No ID required. Fully secured enterprise billing.</p>
+                </div>
+                <div style="margin-bottom: 1rem;">
+                    <h4>⚙️ How Everything Works</h4>
+                    <ul style="padding-left:20px;">
+                        <li>✓ Biometric enrollment & verification</li>
+                        <li>✓ Create invoices, track payments</li>
+                        <li>✓ Multi-currency, analytics & print</li>
+                        <li>✓ Dark mode & responsive design</li>
+                    </ul>
+                </div>
+                <div>
+                    <h4>👨‍💻 Developed by Jatin Kumar</h4>
+                    <p>Enterprise Billing + Biometric Authentication — full financial lifecycle.</p>
+                </div>
+            </div>
+            <!-- Main Content -->
+            <div>
+                <div class="stats-row" id="statsRow">
+                    <div class="stat-card"><i class="fas fa-chart-line"></i> <span id="totalRevenue">₹0</span><br>Total Revenue</div>
+                    <div class="stat-card"><i class="fas fa-file-invoice"></i> <span id="totalInvoices">0</span><br>Total Invoices</div>
+                    <div class="stat-card"><i class="fas fa-check-circle"></i> <span id="paidCount">0</span><br>Settled</div>
+                    <div class="stat-card"><i class="fas fa-hourglass-half"></i> <span id="pendingCount">0</span><br>Pending</div>
+                </div>
+
+                <div class="card-modern">
+                    <h3><i class="fas fa-plus-circle"></i> New Invoice</h3>
+                    <div style="display:flex; flex-wrap:wrap; gap:12px; margin-top:12px;">
+                        <input type="text" id="clientName" placeholder="Client Name" style="flex:2; padding:12px; border-radius:50px; border:1px solid #cbd5e1;">
+                        <input type="number" id="amountValue" placeholder="Amount" style="flex:1; padding:12px; border-radius:50px;">
+                        <select id="statusSelect" style="padding:12px; border-radius:50px;">
+                            <option value="Paid">Paid</option><option value="Pending">Pending</option><option value="Overdue">Overdue</option>
+                        </select>
+                        <button id="createBillBtn" style="background:#2563eb; border:none; padding:0 24px; border-radius:50px; color:white; font-weight:bold;"><i class="fas fa-receipt"></i> Create</button>
+                    </div>
+                </div>
+
+                <div class="card-modern">
+                    <div style="display:flex; justify-content:space-between; flex-wrap:wrap;">
+                        <h3><i class="fas fa-list"></i> Billing Ledger</h3>
+                        <button id="refreshBtn" class="btn-icon"><i class="fas fa-sync-alt"></i> Refresh</button>
+                    </div>
+                    <div style="overflow-x:auto;">
+                        <table id="billingTable">
+                            <thead><tr><th>ID</th><th>Client</th><th>Amount</th><th>Currency</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="card-modern">
+                    <h3><i class="fas fa-chart-simple"></i> Revenue Analytics</h3>
+                    <canvas id="revenueCanvas" style="max-height:250px; width:100%"></canvas>
+                </div>
+                <footer>© 2026 EBLING Biometric Suite — Developed by Jatin Kumar | Thumb Access Enabled</footer>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ---------- REAL BILLING SYSTEM + BIOMETRIC (WEBAUTHN FOR MOBILE/ANDROID) ----------
+        let billingData = [];          // invoices
+        let revenueChart = null;
+        let currentCurrency = "INR";
+        let isAuthenticated = false;
+        let currentUserName = "Biometric User";
+
+        const exchangeRates = { USD: 0.012, EUR: 0.011, INR: 1, GBP: 0.0095 };
+
+        // data persistence
+        function loadBillingData() {
+            const stored = localStorage.getItem("ebling_biometric_bills");
+            if(stored) {
+                billingData = JSON.parse(stored);
+            } else {
+                billingData = [
+                    { id: "INV-1001", client: "TechCorp Global", amount: 25500, date: "2026-01-10", status: "Paid", currency: "INR" },
+                    { id: "INV-1002", client: "Jatin Kumar Holdings", amount: 18700, date: "2026-01-18", status: "Paid", currency: "INR" },
+                    { id: "INV-1003", client: "Astra Innovations", amount: 9400, date: "2026-01-25", status: "Pending", currency: "INR" },
+                    { id: "INV-1004", client: "NexGen Solutions", amount: 32000, date: "2026-02-01", status: "Overdue", currency: "INR" },
+                    { id: "INV-1005", client: "BlueWave Energy", amount: 12600, date: "2026-02-05", status: "Paid", currency: "INR" }
+                ];
+                saveBillingData();
+            }
+            renderAll();
+        }
+
+        function saveBillingData() {
+            localStorage.setItem("ebling_biometric_bills", JSON.stringify(billingData));
+        }
+
+        function generateNewId() {
+            let maxNum = 1005;
+            billingData.forEach(b => { let num = parseInt(b.id.split('-')[1]); if(num > maxNum) maxNum = num; });
+            return `INV-${maxNum+1}`;
+        }
+
+        function addInvoice(client, amount, status) {
+            if(!client.trim() || amount <= 0) { alert("Valid client & amount required"); return false; }
+            const newId = generateNewId();
+            const today = new Date().toISOString().slice(0,10);
+            billingData.unshift({ id: newId, client: client.trim(), amount: parseFloat(amount), date: today, status: status, currency: "INR" });
+            saveBillingData();
+            renderAll();
+            return true;
+        }
+
+        function updateInvoiceStatus(id, newStatus) {
+            let inv = billingData.find(i => i.id === id);
+            if(inv) { inv.status = newStatus; saveBillingData(); renderAll(); }
+        }
+
+        function deleteInvoice(id) {
+            if(confirm("Delete invoice permanently?")) {
+                billingData = billingData.filter(i => i.id !== id);
+                saveBillingData();
+                renderAll();
+            }
+        }
+
+        function convertCurrencyAmount(amount, fromCurr, toCurr) {
+            if(fromCurr === toCurr) return amount;
+            let inINR = amount / (exchangeRates[fromCurr] || 1);
+            return inINR * (exchangeRates[toCurr] || 1);
+        }
+
+        function formatMoney(amount, curr) {
+            let sym = curr === "INR" ? "₹" : (curr === "EUR" ? "€" : (curr === "GBP" ? "£" : "$"));
+            return `${sym} ${amount.toFixed(2)}`;
+        }
+
+        function printInvoice(id) {
+            const inv = billingData.find(i => i.id === id);
+            if(!inv) return;
+            let converted = convertCurrencyAmount(inv.amount, inv.currency || "INR", currentCurrency);
+            let win = window.open('', '_blank');
+            win.document.write(`
+                <html><head><title>Invoice ${inv.id}</title><style>
+                    body { font-family: 'Inter', sans-serif; padding: 2rem; background:white; }
+                    .print-card { border: 2px solid #2563eb; border-radius: 28px; padding: 2rem; max-width:700px; margin:auto; }
+                </style></head>
+                <body><div class="print-card">
+                <h2>EBLING Billing System</h2>
+                <p><strong>Invoice ID:</strong> ${inv.id}</p>
+                <p><strong>Client:</strong> ${inv.client}</p>
+                <p><strong>Date:</strong> ${inv.date}</p>
+                <p><strong>Amount (${currentCurrency}):</strong> ${formatMoney(converted, currentCurrency)}</p>
+                <p><strong>Status:</strong> ${inv.status}</p>
+                <hr><small>Biometric Secured • Developed by Jatin Kumar</small>
+                </div><script>window.print();window.onafterprint=function(){window.close();};<\/script></body></html>
+            `);
+            win.document.close();
+        }
+
+        function renderAll() {
+            // stats
+            let totalRev = 0, paid = 0, pending = 0;
+            billingData.forEach(b => {
+                let conv = convertCurrencyAmount(b.amount, b.currency || "INR", currentCurrency);
+                if(b.status === "Paid") { totalRev += conv; paid++; }
+                else pending++;
+            });
+            document.getElementById('totalRevenue').innerHTML = formatMoney(totalRev, currentCurrency);
+            document.getElementById('totalInvoices').innerText = billingData.length;
+            document.getElementById('paidCount').innerText = paid;
+            document.getElementById('pendingCount').innerText = pending;
+
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            billingData.forEach(inv => {
+                let convertedAmt = convertCurrencyAmount(inv.amount, inv.currency || "INR", currentCurrency);
+                let row = tbody.insertRow();
+                row.insertCell(0).innerText = inv.id;
+                row.insertCell(1).innerText = inv.client;
+                row.insertCell(2).innerHTML = formatMoney(convertedAmt, currentCurrency);
+                row.insertCell(3).innerText = currentCurrency;
+                row.insertCell(4).innerText = inv.date;
+                row.insertCell(5).innerHTML = `<span class="badge-status" style="background:${inv.status === 'Paid' ? '#dcfce7' : inv.status === 'Overdue' ? '#ffe4e2' : '#fff3bf'};">${inv.status}</span>`;
+                let actionCell = row.insertCell(6);
+                let toggleBtn = document.createElement('button');
+                toggleBtn.innerText = inv.status === 'Paid' ? '↻ Pend' : '✓ Pay';
+                toggleBtn.className = "btn-icon";
+                toggleBtn.style.background = "#e2e8f0";
+                toggleBtn.style.borderRadius = "30px";
+                toggleBtn.style.padding = "4px 10px";
+                toggleBtn.onclick = () => updateInvoiceStatus(inv.id, inv.status === 'Paid' ? 'Pending' : 'Paid');
+                let printBtn = document.createElement('button');
+                printBtn.innerHTML = '<i class="fas fa-print"></i>';
+                printBtn.className = "btn-icon";
+                printBtn.onclick = () => printInvoice(inv.id);
+                let delBtn = document.createElement('button');
+                delBtn.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                delBtn.className = "btn-icon";
+                delBtn.onclick = () => deleteInvoice(inv.id);
+                actionCell.append(toggleBtn, printBtn, delBtn);
+            });
+            // chart
+            let last6 = [...billingData].slice(0,6).reverse();
+            let labels = last6.map(i => i.id);
+            let dataPoints = last6.map(i => convertCurrencyAmount(i.amount, i.currency || "INR", currentCurrency));
+            const ctx = document.getElementById('revenueCanvas').getContext('2d');
+            if(revenueChart) revenueChart.destroy();
+            revenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: { labels, datasets: [{ label: `Revenue (${currentCurrency})`, data: dataPoints, backgroundColor: '#3b82f6', borderRadius: 8 }] },
+                options: { responsive: true, maintainAspectRatio: true }
+            });
+        }
+
+        // ---------- BIOMETRIC WEBAUTHN (FINGERPRINT FOR ANDROID/MOBILE) ----------
+        async function startBiometricAuth() {
+            const statusDiv = document.getElementById('biometricStatus');
+            if(!window.PublicKeyCredential) {
+                statusDiv.innerText = "⚠️ Browser does not support WebAuthn. Use fallback.";
+                return false;
+            }
+            try {
+                // Check if credentials exist (for demo we simulate a simple credential creation / get)
+                // For real world: we use simple publicKey options to request fingerprint
+                const publicKeyCredentialRequestOptions = {
+                    challenge: new Uint8Array(32),
+                    allowCredentials: [],
+                    timeout: 60000,
+                    userVerification: "required",
+                    rpId: window.location.hostname
+                };
+                // generate random challenge
+                const randomChallenge = new Uint8Array(32);
+                window.crypto.getRandomValues(randomChallenge);
+                publicKeyCredentialRequestOptions.challenge = randomChallenge;
+                // If no credential ID stored, we register first (simulate one-touch enrollment)
+                let storedCredId = localStorage.getItem("ebling_biometric_credId");
+                if(!storedCredId) {
+                    // registration: create a new credential
+                    const userId = new Uint8Array(16);
+                    window.crypto.getRandomValues(userId);
+                    const createOptions = {
+                        challenge: randomChallenge,
+                        rp: { id: window.location.hostname, name: "EBLING Billing" },
+                        user: { id: userId, name: "ebling_user", displayName: "Admin" },
+                        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                        authenticatorSelection: { userVerification: "required", authenticatorAttachment: "platform" },
+                        timeout: 60000,
+                    };
+                    const credential = await navigator.credentials.create({ publicKey: createOptions });
+                    if(credential) {
+                        localStorage.setItem("ebling_biometric_credId", credential.id);
+                        statusDiv.innerText = "✅ Fingerprint enrolled! Verify again...";
+                        // after enrollment, try to authenticate again
+                        return await verifyBiometricLogin();
+                    } else {
+                        statusDiv.innerText = "Enrollment failed";
+                        return false;
+                    }
+                } else {
+                    // authentication: request fingerprint
+                    const allowCred = [{ id: Uint8Array.from(atob(storedCredId), c=>c.charCodeAt(0)), type: "public-key" }];
+                    publicKeyCredentialRequestOptions.allowCredentials = allowCred;
+                    const assertion = await navigator.credentials.get({ publicKey: publicKeyCredentialRequestOptions });
+                    if(assertion) {
+                        statusDiv.innerText = "✅ Fingerprint verified! Access granted.";
+                        return true;
+                    } else {
+                        statusDiv.innerText = "❌ Biometric verification failed";
+                        return false;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                statusDiv.innerText = "⚠️ Fingerprint error: " + (err.message || "Try fallback");
+                return false;
+            }
+        }
+
+        async function verifyBiometricLogin() {
+            const statusDiv = document.getElementById('biometricStatus');
+            statusDiv.innerText = "🔐 Scanning fingerprint... Place thumb on sensor";
+            try {
+                if(!window.PublicKeyCredential) {
+                    statusDiv.innerText = "WebAuthn not supported. Use password fallback.";
+                    return false;
+                }
+                let storedId = localStorage.getItem("ebling_biometric_credId");
+                if(!storedId) {
+                    // first time: enroll
+                    const createOptions = {
+                        challenge: new Uint8Array(32),
+                        rp: { id: window.location.hostname, name: "EBLING" },
+                        user: { id: new Uint8Array(16), name: "user", displayName: "BIOMETRIC" },
+                        pubKeyCredParams: [{ alg: -7, type: "public-key" }],
+                        authenticatorSelection: { userVerification: "required", authenticatorAttachment: "platform" }
+                    };
+                    window.crypto.getRandomValues(createOptions.challenge);
+                    const cred = await navigator.credentials.create({ publicKey: createOptions });
+                    if(cred) {
+                        localStorage.setItem("ebling_biometric_credId", cred.id);
+                        statusDiv.innerText = "Enrolled! Please authenticate again.";
+                        return await verifyBiometricLogin();
+                    }
+                    return false;
+                } else {
+                    const challenge = new Uint8Array(32);
+                    window.crypto.getRandomValues(challenge);
+                    const getOptions = {
+                        challenge: challenge,
+                        rpId: window.location.hostname,
+                        userVerification: "required",
+                        timeout: 60000,
+                        allowCredentials: [{ id: Uint8Array.from(atob(storedId), c=>c.charCodeAt(0)), type: "public-key" }]
+                    };
+                    const assertion = await navigator.credentials.get({ publicKey: getOptions });
+                    if(assertion) {
+                        statusDiv.innerText = "✅ Verified! Redirecting...";
+                        return true;
+                    }
+                    return false;
+                }
+            } catch(e) {
+                statusDiv.innerText = "Fingerprint canceled or error: " + e.message;
+                return false;
+            }
+        }
+
+        async function handleBiometricLogin() {
+            const success = await verifyBiometricLogin();
+            if(success) {
+                isAuthenticated = true;
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('appMain').style.display = 'block';
+                document.getElementById('loggedUserSpan').innerHTML = `<i class="fas fa-fingerprint"></i> Biometric User`;
+                loadBillingData();
+                setupEvents();
+                initDarkMode();
+            } else {
+                document.getElementById('biometricStatus').innerHTML = "❌ Authentication failed. Use fallback or try again.";
+            }
+        }
+
+        function setupEvents() {
+            document.getElementById('createBillBtn').onclick = () => {
+                let client = document.getElementById('clientName').value;
+                let amt = parseFloat(document.getElementById('amountValue').value);
+                let status = document.getElementById('statusSelect').value;
+                addInvoice(client, amt, status);
+                document.getElementById('clientName').value = '';
+                document.getElementById('amountValue').value = '';
+            };
+            document.getElementById('refreshBtn').onclick = () => renderAll();
+            document.getElementById('logoutBtn').onclick = () => {
+                localStorage.removeItem("ebling_biometric_session");
+                document.getElementById('appMain').style.display = 'none';
+                document.getElementById('loginContainer').style.display = 'flex';
+            };
+            document.getElementById('globalCurrency').onchange = (e) => { currentCurrency = e.target.value; renderAll(); };
+        }
+
+        function initDarkMode() {
+            if(localStorage.getItem("ebling_theme") === 'dark') document.body.classList.add('dark');
+            document.getElementById('darkModeToggle').onclick = () => {
+                document.body.classList.toggle('dark');
+                localStorage.setItem("ebling_theme", document.body.classList.contains('dark') ? 'dark' : 'light');
+            };
+        }
+
+        // Fallback Password Login
+        document.getElementById('showFallbackBtn').onclick = () => {
+            let fb = document.getElementById('fallbackForm');
+            fb.style.display = fb.style.display === 'none' ? 'block' : 'none';
+        };
+        document.getElementById('fallbackLoginBtn').onclick = () => {
+            let user = document.getElementById('fallbackUser').value;
+            let pass = document.getElementById('fallbackPass').value;
+            if((user === "admin" && pass === "admin123") || (user === "jatin" && pass === "master")) {
+                isAuthenticated = true;
+                document.getElementById('loginContainer').style.display = 'none';
+                document.getElementById('appMain').style.display = 'block';
+                document.getElementById('loggedUserSpan').innerHTML = `<i class="fas fa-user"></i> ${user}`;
+                loadBillingData();
+                setupEvents();
+                initDarkMode();
+            } else {
+                alert("Invalid fallback credentials: admin/admin123");
+            }
+        };
+        document.getElementById('fingerprintLoginBtn').onclick = () => handleBiometricLogin();
+        
+        // auto-check if session exists?
+        if(localStorage.getItem("ebling_biometric_session") === "active") {
+            // just a dummy, but we don't store permanent session without re-auth for security
+        }
+    </script>
+</body>
+</html>
