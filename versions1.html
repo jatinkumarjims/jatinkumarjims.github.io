@@ -1,0 +1,627 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=yes">
+    <title>EBLING Pro Suite | Multi-Template Invoice System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f0f2f5;
+            transition: all 0.3s;
+        }
+
+        /* Auth Container */
+        .auth-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1.5rem;
+        }
+        .auth-card {
+            background: white;
+            border-radius: 2rem;
+            padding: 2rem;
+            width: 480px;
+            max-width: 100%;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25);
+        }
+        .auth-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        .auth-tab {
+            flex: 1;
+            text-align: center;
+            padding: 0.75rem;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+        .auth-tab.active {
+            color: #667eea;
+            border-bottom: 2px solid #667eea;
+            margin-bottom: -2px;
+        }
+        .input-group {
+            margin-bottom: 1rem;
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .input-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 100%;
+            padding: 12px;
+            border-radius: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 0.5rem;
+        }
+        .error-msg {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+        }
+
+        /* Dashboard */
+        .dashboard {
+            display: none;
+        }
+        .navbar {
+            background: white;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .user-profile {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .avatar {
+            width: 45px;
+            height: 45px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .main-content {
+            padding: 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .stat-card {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        /* Invoice Templates Grid */
+        .templates-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .template-card {
+            background: white;
+            border-radius: 1rem;
+            padding: 1rem;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: 0.2s;
+            text-align: center;
+        }
+        .template-card.selected {
+            border-color: #667eea;
+            background: #f5f3ff;
+        }
+        .template-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+        .invoice-form {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .invoice-preview {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+        .invoice-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+        .stamp-area {
+            text-align: right;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px dashed #ccc;
+        }
+        .digital-stamp {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border: 2px solid #ef4444;
+            color: #ef4444;
+            border-radius: 50px;
+            font-weight: bold;
+            transform: rotate(-5deg);
+            opacity: 0.8;
+        }
+        button {
+            cursor: pointer;
+        }
+        @media print {
+            .navbar, .stats-grid, .invoice-form, .templates-grid, .actions-bar {
+                display: none;
+            }
+            .invoice-preview {
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- AUTHENTICATION SECTION -->
+    <div id="authSection" class="auth-container">
+        <div class="auth-card">
+            <div class="auth-tabs">
+                <div class="auth-tab active" data-tab="login">🔐 Login</div>
+                <div class="auth-tab" data-tab="register">📝 Register</div>
+            </div>
+            <div id="loginForm">
+                <div class="input-group"><input type="text" id="loginUsername" placeholder="Username"></div>
+                <div class="input-group"><input type="password" id="loginPassword" placeholder="Password"></div>
+                <button id="doLogin" class="btn-primary">Login to Dashboard</button>
+                <div id="loginError" class="error-msg"></div>
+            </div>
+            <div id="registerForm" style="display:none;">
+                <div class="input-group"><input type="text" id="regFullname" placeholder="Full Name"></div>
+                <div class="input-group"><input type="text" id="regUsername" placeholder="Username"></div>
+                <div class="input-group"><input type="email" id="regEmail" placeholder="Email"></div>
+                <div class="input-group"><input type="password" id="regPassword" placeholder="Password"></div>
+                <div class="input-group"><input type="text" id="regCompany" placeholder="Company Name (optional)"></div>
+                <button id="doRegister" class="btn-primary">Create Account</button>
+                <div id="regError" class="error-msg"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN DASHBOARD -->
+    <div id="dashboard" class="dashboard">
+        <div class="navbar">
+            <div><h2><i class="fas fa-file-invoice"></i> EBLING Pro Suite</h2></div>
+            <div class="user-profile">
+                <div class="avatar" id="userAvatar">JD</div>
+                <span id="welcomeUser"></span>
+                <button id="logoutBtn" style="background:#ef4444; border:none; padding:8px 20px; border-radius:30px; color:white;">Logout</button>
+            </div>
+        </div>
+        <div class="main-content">
+            <div class="stats-grid">
+                <div class="stat-card"><i class="fas fa-chart-line"></i> <h3 id="totalRevenue">₹0</h3><p>Total Revenue</p></div>
+                <div class="stat-card"><i class="fas fa-receipt"></i> <h3 id="totalInvoices">0</h3><p>Invoices</p></div>
+                <div class="stat-card"><i class="fas fa-check-circle"></i> <h3 id="paidInvoices">0</h3><p>Paid</p></div>
+                <div class="stat-card"><i class="fas fa-clock"></i> <h3 id="pendingInvoices">0</h3><p>Pending</p></div>
+            </div>
+
+            <!-- 10+ Invoice Templates -->
+            <h3><i class="fas fa-palette"></i> Select Invoice Template</h3>
+            <div class="templates-grid" id="templatesGrid"></div>
+
+            <!-- Create Invoice Form -->
+            <div class="invoice-form">
+                <h3><i class="fas fa-edit"></i> Create New Invoice</h3>
+                <div class="form-row">
+                    <input type="text" id="invClientName" placeholder="Client Name" class="input-group">
+                    <input type="email" id="invClientEmail" placeholder="Client Email">
+                    <input type="text" id="invAmount" placeholder="Amount (₹)" type="number">
+                </div>
+                <div class="form-row">
+                    <input type="text" id="invService" placeholder="Service/Product Description">
+                    <input type="date" id="invDate" value="2026-06-02">
+                    <select id="invStatus">
+                        <option value="Paid">Paid</option>
+                        <option value="Pending">Pending</option>
+                        <option value="Overdue">Overdue</option>
+                    </select>
+                </div>
+                <button id="generateInvoiceBtn" class="btn-primary" style="width:auto; padding:12px 30px;">✨ Generate Invoice</button>
+            </div>
+
+            <!-- Invoice Preview with Stamp -->
+            <div class="invoice-preview" id="invoicePreviewContainer">
+                <div id="invoiceContent">
+                    <!-- Dynamic invoice preview will be injected here -->
+                </div>
+                <div class="actions-bar" style="margin-top: 1rem; display: flex; gap: 1rem; justify-content: flex-end;">
+                    <button id="printInvoiceBtn" class="btn-primary" style="background:#28a745;"><i class="fas fa-print"></i> Print</button>
+                    <button id="downloadPDFBtn" class="btn-primary" style="background:#17a2b8;"><i class="fas fa-download"></i> Download PDF</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ---------- USER SYSTEM WITH LOCAL STORAGE ----------
+        let currentUser = null;
+        let userInvoices = [];
+        let selectedTemplate = 0;
+        
+        // 10+ Professional Templates with different styles
+        const templates = [
+            { id: 0, name: "Minimal Clean", icon: "fa-file-lines", style: "modern", accent: "#2c3e50" },
+            { id: 1, name: "Corporate Blue", icon: "fa-building", style: "corporate", accent: "#1e3a8a" },
+            { id: 2, name: "Elegant Gold", icon: "fa-crown", style: "elegant", accent: "#b8860b" },
+            { id: 3, name: "Dark Professional", icon: "fa-moon", style: "dark", accent: "#1f2937" },
+            { id: 4, name: "Minimalist", icon: "fa-feather", style: "minimal", accent: "#6b7280" },
+            { id: 5, name: "Green Nature", icon: "fa-leaf", style: "nature", accent: "#2e7d32" },
+            { id: 6, name: "Tech Startup", icon: "fa-microchip", style: "tech", accent: "#0f172a" },
+            { id: 7, name: "Luxury", icon: "fa-gem", style: "luxury", accent: "#4a154b" },
+            { id: 8, name: "Creative", icon: "fa-paintbrush", style: "creative", accent: "#ec4899" },
+            { id: 9, name: "Legal", icon: "fa-gavel", style: "legal", accent: "#3730a3" },
+            { id: 10, name: "Freelancer", icon: "fa-user-tie", style: "freelancer", accent: "#0891b2" }
+        ];
+
+        // User Registration & Login Logic
+        function loadUsers() {
+            let users = localStorage.getItem("ebling_users");
+            if(!users) {
+                users = {};
+                localStorage.setItem("ebling_users", JSON.stringify(users));
+            }
+            return JSON.parse(users);
+        }
+
+        function saveUsers(users) {
+            localStorage.setItem("ebling_users", JSON.stringify(users));
+        }
+
+        function registerUser(fullname, username, email, password, company) {
+            const users = loadUsers();
+            if(users[username]) return { success: false, error: "Username already exists" };
+            users[username] = {
+                fullname, email, password, company: company || "",
+                createdAt: new Date().toISOString(),
+                invoices: []
+            };
+            saveUsers(users);
+            return { success: true };
+        }
+
+        function loginUser(username, password) {
+            const users = loadUsers();
+            const user = users[username];
+            if(user && user.password === password) {
+                currentUser = { username, ...user };
+                localStorage.setItem("ebling_current_session", JSON.stringify({ username, loggedIn: true }));
+                loadUserInvoices();
+                return true;
+            }
+            return false;
+        }
+
+        function loadUserInvoices() {
+            if(currentUser) {
+                userInvoices = currentUser.invoices || [];
+                updateDashboardStats();
+                renderTemplates();
+                if(userInvoices.length > 0) displayInvoicePreview(userInvoices[userInvoices.length-1]);
+            }
+        }
+
+        function saveUserInvoices() {
+            const users = loadUsers();
+            if(users[currentUser.username]) {
+                users[currentUser.username].invoices = userInvoices;
+                saveUsers(users);
+                currentUser.invoices = userInvoices;
+                updateDashboardStats();
+            }
+        }
+
+        function addInvoice(invoice) {
+            invoice.id = "INV-" + Date.now();
+            invoice.createdAt = new Date().toISOString();
+            invoice.templateId = selectedTemplate;
+            userInvoices.unshift(invoice);
+            saveUserInvoices();
+            updateDashboardStats();
+            displayInvoicePreview(invoice);
+        }
+
+        function updateDashboardStats() {
+            let total = 0, paid = 0, pending = 0;
+            userInvoices.forEach(inv => {
+                total += parseFloat(inv.amount) || 0;
+                if(inv.status === "Paid") paid++;
+                else pending++;
+            });
+            document.getElementById('totalRevenue').innerHTML = `₹${total.toFixed(2)}`;
+            document.getElementById('totalInvoices').innerText = userInvoices.length;
+            document.getElementById('paidInvoices').innerText = paid;
+            document.getElementById('pendingInvoices').innerText = pending;
+        }
+
+        // Template Rendering
+        function renderTemplates() {
+            const container = document.getElementById('templatesGrid');
+            container.innerHTML = templates.map(t => `
+                <div class="template-card ${selectedTemplate === t.id ? 'selected' : ''}" data-id="${t.id}">
+                    <div class="template-icon"><i class="fas ${t.icon}"></i></div>
+                    <strong>${t.name}</strong>
+                </div>
+            `).join('');
+            document.querySelectorAll('.template-card').forEach(card => {
+                card.addEventListener('click', () => {
+                    selectedTemplate = parseInt(card.dataset.id);
+                    renderTemplates();
+                    if(userInvoices.length > 0) displayInvoicePreview(userInvoices[userInvoices.length-1]);
+                });
+            });
+        }
+
+        // Generate Invoice HTML with Stamp (Professional)
+        function generateInvoiceHTML(invoice, template) {
+            const companyName = currentUser.company || currentUser.fullname.split(' ')[0] + "'s Enterprise";
+            const stampHtml = invoice.status === "Paid" ? `<div class="digital-stamp"><i class="fas fa-check-circle"></i> PAID · ${new Date().toLocaleDateString()}</div>` : 
+                             `<div class="digital-stamp" style="border-color:#f59e0b; color:#f59e0b;"><i class="fas fa-clock"></i> ${invoice.status}</div>`;
+            
+            const styles = {
+                modern: `font-family: 'Inter', sans-serif; background: white; color: #1e293b;`,
+                corporate: `font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); color: white; padding: 2rem; border-radius: 1rem;`,
+                elegant: `font-family: 'Playfair Display', serif; background: #fef9e6; border: 2px solid #b8860b;`,
+                dark: `font-family: 'Inter', sans-serif; background: #1e1e2f; color: #e2e8f0;`,
+                minimal: `font-family: 'Inter', sans-serif; background: white; border: 1px solid #e2e8f0; box-shadow: none;`,
+                nature: `font-family: 'Inter', sans-serif; background: #f0fdf4; border-left: 6px solid #2e7d32;`,
+                tech: `font-family: 'Courier New', monospace; background: #0f172a; color: #0ff; border: 1px solid #0ff;`,
+                luxury: `font-family: 'Playfair Display', serif; background: linear-gradient(145deg, #2d1b4e, #1a1a2e); color: #ffd700;`,
+                creative: `font-family: 'Inter', sans-serif; background: #fdf2f8; border: 2px dashed #ec4899;`,
+                legal: `font-family: 'Times New Roman', serif; background: #fefefe; border: 2px solid #3730a3;`,
+                freelancer: `font-family: 'Inter', sans-serif; background: #ecfdf5; border-radius: 1rem;`
+            };
+            
+            const styleKey = template.style;
+            const mainStyle = styles[styleKey] || styles.modern;
+            
+            return `
+                <div style="${mainStyle}; padding: 2rem; border-radius: 1rem; max-width: 800px; margin: 0 auto;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 2rem; flex-wrap: wrap;">
+                        <div>
+                            <h2 style="margin:0;">${companyName}</h2>
+                            <small>${currentUser.email || currentUser.username}@ebling.com</small>
+                        </div>
+                        <div style="text-align: right;">
+                            <h1 style="color: ${template.accent};">INVOICE</h1>
+                            <p><strong>#${invoice.id}</strong></p>
+                            <p>Date: ${invoice.date}</p>
+                        </div>
+                    </div>
+                    <div style="margin-bottom: 1.5rem;">
+                        <h3>Bill To:</h3>
+                        <p><strong>${invoice.clientName}</strong><br>${invoice.clientEmail || ''}</p>
+                    </div>
+                    <table style="width:100%; border-collapse: collapse; margin: 1rem 0;">
+                        <thead>
+                            <tr style="background: ${template.accent}20; border-bottom: 2px solid ${template.accent};">
+                                <th style="padding: 0.75rem; text-align: left;">Description</th>
+                                <th style="padding: 0.75rem; text-align: right;">Amount</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td style="padding: 0.75rem;">${invoice.service || "Professional Services"}</td>
+                                <td style="padding: 0.75rem; text-align: right;">₹${parseFloat(invoice.amount).toFixed(2)}</td>
+                            </tr>
+                        </tbody>
+                        <tfoot>
+                            <tr style="border-top: 2px solid ${template.accent};">
+                                <th style="padding: 0.75rem; text-align: right;">Total:</th>
+                                <th style="padding: 0.75rem; text-align: right;">₹${parseFloat(invoice.amount).toFixed(2)}</th>
+                            </tr>
+                        </tfoot>
+                    </table>
+                    <div style="margin-top: 2rem; padding: 1rem; background: ${template.accent}10; border-radius: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <div><i class="fas fa-fingerprint"></i> Digitally Verified</div>
+                        <div class="stamp-area">${stampHtml}</div>
+                    </div>
+                    <div style="margin-top: 1rem; text-align: center; font-size: 0.7rem; color: #6b7280;">
+                        <p>Thank you for your business! This is a system-generated invoice.</p>
+                        <p>© ${new Date().getFullYear()} ${companyName} | Powered by EBLING</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function displayInvoicePreview(invoice) {
+            const template = templates.find(t => t.id === (invoice.templateId !== undefined ? invoice.templateId : selectedTemplate)) || templates[0];
+            const html = generateInvoiceHTML(invoice, template);
+            document.getElementById('invoiceContent').innerHTML = html;
+        }
+
+        function createNewInvoice() {
+            const clientName = document.getElementById('invClientName').value;
+            const clientEmail = document.getElementById('invClientEmail').value;
+            const amount = document.getElementById('invAmount').value;
+            const service = document.getElementById('invService').value;
+            const date = document.getElementById('invDate').value;
+            const status = document.getElementById('invStatus').value;
+            
+            if(!clientName || !amount) {
+                alert("Please fill client name and amount");
+                return;
+            }
+            
+            const newInvoice = {
+                clientName, clientEmail, amount: parseFloat(amount), service, date, status, templateId: selectedTemplate
+            };
+            addInvoice(newInvoice);
+            
+            // Clear form
+            document.getElementById('invClientName').value = '';
+            document.getElementById('invClientEmail').value = '';
+            document.getElementById('invAmount').value = '';
+            document.getElementById('invService').value = '';
+        }
+
+        // Print & PDF functions
+        function printInvoice() {
+            const printContent = document.getElementById('invoiceContent').innerHTML;
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html><head><title>Invoice Print</title>
+                <style>body { margin: 0; padding: 2rem; } @media print { body { margin: 0; } }</style>
+                </head><body>${printContent}</body></html>
+            `);
+            printWindow.document.close();
+            printWindow.print();
+        }
+
+        async function downloadPDF() {
+            const element = document.getElementById('invoiceContent');
+            const { jsPDF } = window.jspdf;
+            const canvas = await html2canvas(element, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const imgWidth = 210;
+            const pageHeight = 297;
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+            pdf.save(`invoice_${Date.now()}.pdf`);
+        }
+
+        // UI State Management
+        function showDashboard() {
+            document.getElementById('authSection').style.display = 'none';
+            document.getElementById('dashboard').style.display = 'block';
+            document.getElementById('welcomeUser').innerText = `Welcome, ${currentUser.fullname || currentUser.username}`;
+            document.getElementById('userAvatar').innerText = (currentUser.fullname || currentUser.username).charAt(0).toUpperCase();
+            loadUserInvoices();
+        }
+
+        function logout() {
+            localStorage.removeItem("ebling_current_session");
+            currentUser = null;
+            document.getElementById('authSection').style.display = 'flex';
+            document.getElementById('dashboard').style.display = 'none';
+            document.getElementById('loginUsername').value = '';
+            document.getElementById('loginPassword').value = '';
+        }
+
+        // Event Listeners for Auth
+        document.getElementById('doLogin').addEventListener('click', () => {
+            const username = document.getElementById('loginUsername').value;
+            const password = document.getElementById('loginPassword').value;
+            if(loginUser(username, password)) {
+                showDashboard();
+            } else {
+                document.getElementById('loginError').innerText = "Invalid username or password";
+            }
+        });
+
+        document.getElementById('doRegister').addEventListener('click', () => {
+            const fullname = document.getElementById('regFullname').value;
+            const username = document.getElementById('regUsername').value;
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const company = document.getElementById('regCompany').value;
+            if(!fullname || !username || !email || !password) {
+                document.getElementById('regError').innerText = "Please fill all required fields";
+                return;
+            }
+            const result = registerUser(fullname, username, email, password, company);
+            if(result.success) {
+                alert("Registration successful! Please login.");
+                document.querySelector('[data-tab="login"]').click();
+            } else {
+                document.getElementById('regError').innerText = result.error;
+            }
+        });
+
+        // Tab switching
+        document.querySelectorAll('.auth-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                const isLogin = tab.dataset.tab === 'login';
+                document.getElementById('loginForm').style.display = isLogin ? 'block' : 'none';
+                document.getElementById('registerForm').style.display = isLogin ? 'none' : 'block';
+            });
+        });
+
+        document.getElementById('generateInvoiceBtn').addEventListener('click', createNewInvoice);
+        document.getElementById('printInvoiceBtn').addEventListener('click', printInvoice);
+        document.getElementById('downloadPDFBtn').addEventListener('click', downloadPDF);
+        document.getElementById('logoutBtn').addEventListener('click', logout);
+
+        // Check existing session
+        const savedSession = localStorage.getItem("ebling_current_session");
+        if(savedSession) {
+            const session = JSON.parse(savedSession);
+            const users = loadUsers();
+            if(users[session.username]) {
+                currentUser = { username: session.username, ...users[session.username] };
+                showDashboard();
+            }
+        }
+
+        // Set default date
+        document.getElementById('invDate').valueAsDate = new Date();
+    </script>
+</body>
+</html>
