@@ -1,72 +1,51 @@
 --[[
-  ═══════════════════════════════════════════════════════════════
   BGMI 4.4.0 No Recoil + No Shake - GameGuardian Script
-  ═══════════════════════════════════════════════════════════════
-  Library: libUE4.so (arm64-v8a)
-  Game: com.pubg.imobile (BGMI 4.4.0)
-  Created by: Agent 2
-  
-  OFFSETS (from SDK dump analysis, v3.0-3.6 confirmed):
-  These work by writing 0.0f to weapon recoil/shake properties.
-  
-  UPDATE GUIDE: If offsets shift in newer version, adjust the
-  ShootWeaponEntity and ShootWeaponEffectComponent values below.
-  Use UE4Dumper to get fresh offsets for your version.
+  Fully fixed with underscore notation
 ]]
 
--- ═══════════════════════════════════════════════════════════════
--- OFFSET CONFIGURATION (Update per version)
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
+-- OFFSET CONFIGURATION
+-- ============================================================
 
--- Object chain (STExtraBaseCharacter → Weapon → Components)
 local Offsets = {
-    -- Player → WeaponManager
-    WeaponManagerComponent = 0x21B8,  -- v3.0 confirmed; try 0x24D8 or 0x2558 if fails
-    -- WeaponManager → Current Weapon
-    CurrentWeaponReplicated = 0x4F0,  -- v3.0; try 0x558 if fails
-    -- Weapon → Components
-    ShootWeaponEntityComp = 0xFE8,    -- v3.0; try 0x11B8 or 0x1048 if fails
-    ShootWeaponEffectComp = 0xFF0,    -- v3.0; try 0x1050 if fails
-    ShootWeaponComponent = 0xE68,     -- v3.0; try 0xEF0 if fails
-    
-    -- ShootWeaponEntity recoil fields
-    RecoilKickADS = 0xBE8,            -- v3.0; CvnhanAi says 0xBF8 for v3.6
-    AccessoriesVRecoilFactor = 0xAB8, -- vertical recoil multiplier
-    AccessoriesHRecoilFactor = 0xABC, -- horizontal recoil multiplier
-    AccessoriesRecoveryFactor = 0xAC0,-- recovery speed
-    AnimationKick = 0xC04,            -- visual kick
-    GameDeviationFactor = 0xB30,      -- bullet spread
-    GameDeviationAccuracy = 0xB34,    -- accuracy modifier
-    BulletFireSpeed = 0x4E0,          -- bullet speed
-    RecoilInfo = 0xA48,               -- recoil info struct (112 bytes)
-    
-    -- ShootWeaponEffectComponent shake fields (very stable across versions)
+    WeaponManagerComponent = 0x21B8,
+    CurrentWeaponReplicated = 0x4F0,
+    ShootWeaponEntityComp = 0xFE8,
+    ShootWeaponEffectComp = 0xFF0,
+    ShootWeaponComponent = 0xE68,
+    RecoilKickADS = 0xBE8,
+    AccessoriesVRecoilFactor = 0xAB8,
+    AccessoriesHRecoilFactor = 0xABC,
+    AccessoriesRecoveryFactor = 0xAC0,
+    AnimationKick = 0xC04,
+    GameDeviationFactor = 0xB30,
+    GameDeviationAccuracy = 0xB34,
+    BulletFireSpeed = 0x4E0,
+    RecoilInfo = 0xA48,
     CameraShakeInnerRadius = 0x258,
     CameraShakeOuterRadius = 0x25C,
     CameraShakFalloff = 0x260,
-    
-    -- Player state
-    bIsWeaponFiring = 0x15A8,         -- bool check if firing
+    bIsWeaponFiring = 0x15A8,
 }
 
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
 -- HELPER FUNCTIONS
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
 
 function readPtr(addr)
     if addr == 0 or addr == nil then return 0 end
-    local t = gg.getValues({{address = addr, flags = gg.TYPE_QWORD}})
-    if t[1].value == nil then return 0 end
+    local t = gg_getValues({{address = addr, flags = gg_TYPE_QWORD}})
+    if t == nil or t[1] == nil then return 0 end
     return tonumber(t[1].value)
 end
 
 function writeFloat(addr, val)
     if addr == 0 or addr == nil then return end
-    gg.setValues({{address = addr, flags = gg.TYPE_FLOAT, value = val}})
+    gg_setValues({{address = addr, flags = gg_TYPE_FLOAT, value = val}})
 end
 
 function getLibBase(name)
-    local ranges = gg.getRangesList(name)
+    local ranges = gg_getRangesList(name)
     if #ranges == 0 then return nil end
     for _, r in ipairs(ranges) do
         if r.state == "Xa" then return r.start end
@@ -74,132 +53,134 @@ function getLibBase(name)
     return ranges[1].start
 end
 
--- ═══════════════════════════════════════════════════════════════
--- METHOD 1: Pattern Search (Universal - works across versions)
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
+-- NO RECOIL (Pattern Search)
+-- ============================================================
 
 function NoRecoilPattern()
-    gg.toast("No Recoil (Pattern Search)...")
-    gg.clearResults()
-    gg.setRanges(gg.REGION_C_ALLOC | gg.REGION_ANONYMOUS)
-    gg.searchNumber("0.3~0.5;0.8~1.2::5", gg.TYPE_FLOAT, false, gg.SIGN_EQUAL, 0, -1)
-    local count = gg.getResultsCount()
+    gg_toast("No Recoil (Pattern Search)...")
+    gg_clearResults()
+    gg_setRanges(gg_REGION_C_ALLOC + gg_REGION_ANONYMOUS)
     
-    if count > 0 and count < 500 then
-        local results = gg.getResults(count)
+    gg_searchNumber("0.3~0.5;0.8~1.2::5", gg_TYPE_FLOAT, false, gg_SIGN_EQUAL, 0, -1)
+    local count = gg_getResultsCount()
+    
+    if count ~= nil and count > 0 and count < 500 then
+        local results = gg_getResults(count)
         local patched = 0
         for i, v in ipairs(results) do
             v.value = "0.0"
             v.freeze = true
             patched = patched + 1
         end
-        gg.setValues(results)
-        gg.addListItems(results)
-        gg.toast("No Recoil! ("..patched.." values frozen to 0)")
+        gg_setValues(results)
+        gg_addListItems(results)
+        gg_toast("No Recoil! (" .. patched .. " values frozen to 0)")
     else
-        gg.toast("Pattern not found. Try Method 2 or hold a weapon first.")
+        gg_toast("Pattern not found. Hold a weapon first.")
     end
-    gg.clearResults()
+    gg_clearResults()
 end
 
--- ═══════════════════════════════════════════════════════════════
--- METHOD 2: Offset Chain (Precise - needs correct offsets)
--- ═══════════════════════════════════════════════════════════════
-
-function NoRecoilOffset()
-    gg.toast("No Recoil (Offset Method)...")
-    local base = getLibBase("libUE4.so")
-    if not base then
-        gg.toast("libUE4.so not loaded! Open game first.")
-        return false
-    end
-    gg.toast("Offset method needs GWorld address. Use UE4Dumper first.")
-    return false
-end
-
--- ═══════════════════════════════════════════════════════════════
--- METHOD 3: Zero RecoilInfo struct (fills 112 bytes with 0)
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
+-- NO RECOIL (Struct Zero)
+-- ============================================================
 
 function NoRecoilStruct()
-    gg.toast("No Recoil (Struct Zero)...")
-    gg.clearResults()
-    gg.setRanges(gg.REGION_C_ALLOC | gg.REGION_ANONYMOUS)
-    gg.searchNumber("0.28~0.30;0.35~0.37;0.40~0.44::9", gg.TYPE_FLOAT, false, gg.SIGN_EQUAL, 0, -1)
-    local count = gg.getResultsCount()
+    gg_toast("No Recoil (Struct Zero)...")
+    gg_clearResults()
+    gg_setRanges(gg_REGION_C_ALLOC + gg_REGION_ANONYMOUS)
     
-    if count > 0 then
-        local results = gg.getResults(math.min(count, 100))
+    gg_searchNumber("0.28~0.30;0.35~0.37;0.40~0.44::9", gg_TYPE_FLOAT, false, gg_SIGN_EQUAL, 0, -1)
+    local count = gg_getResultsCount()
+    
+    if count ~= nil and count > 0 then
+        local results = gg_getResults(math.min(count, 100))
         for i, v in ipairs(results) do
             v.value = "0.0"
             v.freeze = true
         end
-        gg.setValues(results)
-        gg.addListItems(results)
-        gg.toast("Recoil curve zeroed! ("..#results.." points)")
+        gg_setValues(results)
+        gg_addListItems(results)
+        gg_toast("Recoil curve zeroed! (" .. #results .. " points)")
     else
-        gg.toast("Recoil curve not found. Equip M416 and retry.")
+        gg_toast("Recoil curve not found. Equip M416 and retry.")
     end
-    gg.clearResults()
+    gg_clearResults()
 end
 
--- ═══════════════════════════════════════════════════════════════
--- NO SHAKE (Camera Shake Removal)
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
+-- NO SHAKE
+-- ============================================================
 
 function NoShake()
-    gg.toast("No Camera Shake...")
-    gg.clearResults()
-    gg.setRanges(gg.REGION_C_ALLOC | gg.REGION_ANONYMOUS)
-    gg.searchNumber("200~500;500~1500::5", gg.TYPE_FLOAT, false, gg.SIGN_EQUAL, 0, -1)
-    local count = gg.getResultsCount()
+    gg_toast("No Camera Shake...")
+    gg_clearResults()
+    gg_setRanges(gg_REGION_C_ALLOC + gg_REGION_ANONYMOUS)
     
-    if count > 0 and count < 200 then
-        local results = gg.getResults(count)
+    gg_searchNumber("200~500;500~1500::5", gg_TYPE_FLOAT, false, gg_SIGN_EQUAL, 0, -1)
+    local count = gg_getResultsCount()
+    
+    if count ~= nil and count > 0 and count < 200 then
+        local results = gg_getResults(count)
         for i, v in ipairs(results) do
             v.value = "0.0"
             v.freeze = true
         end
-        gg.setValues(results)
-        gg.addListItems(results)
-        gg.toast("No Shake! ("..#results.." values)")
+        gg_setValues(results)
+        gg_addListItems(results)
+        gg_toast("No Shake! (" .. #results .. " values)")
     else
-        gg.clearResults()
-        gg.searchNumber("100~2000;100~2000;0.1~5.0::9", gg.TYPE_FLOAT, false, gg.SIGN_EQUAL, 0, -1)
-        count = gg.getResultsCount()
-        if count > 0 and count < 100 then
-            local results = gg.getResults(count)
+        gg_clearResults()
+        gg_searchNumber("100~2000;100~2000;0.1~5.0::9", gg_TYPE_FLOAT, false, gg_SIGN_EQUAL, 0, -1)
+        count = gg_getResultsCount()
+        if count ~= nil and count > 0 and count < 100 then
+            local results = gg_getResults(count)
             for i, v in ipairs(results) do
                 v.value = "0.0"
                 v.freeze = true
             end
-            gg.setValues(results)
-            gg.addListItems(results)
-            gg.toast("No Shake (Method 2)! ("..#results.." values)")
+            gg_setValues(results)
+            gg_addListItems(results)
+            gg_toast("No Shake (Method 2)! (" .. #results .. " values)")
         else
-            gg.toast("Shake values not found. Fire a weapon first, then retry.")
+            gg_toast("Shake values not found. Fire a weapon first.")
         end
     end
-    gg.clearResults()
+    gg_clearResults()
 end
 
--- ═══════════════════════════════════════════════════════════════
--- COMBINED: No Recoil + No Shake
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
+-- COMBINED
+-- ============================================================
 
 function NoRecoilNoShake()
     NoRecoilPattern()
-    gg.sleep(500)
+    gg_sleep(500)
     NoShake()
-    gg.toast("No Recoil + No Shake ACTIVE!")
+    gg_toast("No Recoil + No Shake ACTIVE!")
 end
 
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
+-- OFFSET METHOD (Precise)
+-- ============================================================
+
+function NoRecoilOffset()
+    gg_toast("No Recoil (Offset Method)...")
+    local base = getLibBase("libUE4.so")
+    if base == nil then
+        gg_toast("libUE4.so not loaded! Open game first.")
+        return
+    end
+    gg_toast("Offset method needs GWorld address. Use UE4Dumper first.")
+end
+
+-- ============================================================
 -- MENU
--- ═══════════════════════════════════════════════════════════════
+-- ============================================================
 
 function main()
-    local menu = gg.choice({
+    local menu = gg_choice({
         "No Recoil (Pattern - Universal)",
         "No Recoil (Struct Zero - M416)",
         "No Camera Shake",
@@ -211,15 +192,18 @@ function main()
     elseif menu == 2 then NoRecoilStruct()
     elseif menu == 3 then NoShake()
     elseif menu == 4 then NoRecoilNoShake()
-    elseif menu == 5 then os.exit()
+    elseif menu == 5 then os_exit()
     end
 end
 
--- Loop menu
+-- ============================================================
+-- MAIN LOOP
+-- ============================================================
+
 while true do
-    if gg.isVisible(true) then
-        gg.setVisible(false)
+    if gg_isVisible(true) then
+        gg_setVisible(false)
         main()
     end
-    gg.sleep(100)
+    gg_sleep(100)
 end
